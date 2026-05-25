@@ -24,6 +24,8 @@ type PistonExecuteResponse = {
   compile?: PistonStage
 }
 
+type MonacoOptions = import('monaco-editor').editor.IStandaloneEditorConstructionOptions
+
 const PISTON_BASE =
   import.meta.env.VITE_PISTON_BASE ?? 'https://emkc.org/api/v2/piston'
 
@@ -72,6 +74,8 @@ const LANGUAGE_EXTENSION_MAP: Record<string, string> = {
   rust: 'rs',
   typescript: 'ts',
 }
+
+const EDITOR_THEME = 'studio-dark'
 
 function getRuntimeKey(runtime: Runtime) {
   return `${runtime.language}@${runtime.version}`
@@ -170,15 +174,78 @@ function App() {
     setCode(getDefaultSnippet(runtime.language))
   }, [runtime])
 
-  const editorOptions = useMemo(
+  const editorOptions = useMemo<MonacoOptions>(
     () => ({
       fontSize: 14,
+      fontFamily:
+        'JetBrains Mono, Fira Code, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, monospace',
+      lineHeight: 22,
+      padding: { top: 12, bottom: 12 },
       minimap: { enabled: false },
       scrollBeyondLastLine: false,
       automaticLayout: true,
+      wordWrap: 'off',
+      renderWhitespace: 'selection',
+      renderValidationDecorations: 'off',
+      renderIndentGuides: false,
+      highlightActiveIndentGuide: false,
+      occurrencesHighlight: 'off',
+      selectionHighlight: false,
+      wordHighlight: 'off',
+      wordHighlightStrong: 'off',
+      bracketPairColorization: { enabled: true },
+      guides: { bracketPairs: false, indentation: true },
+      cursorSmoothCaretAnimation: 'on',
+      smoothScrolling: true,
+      fontLigatures: true,
+      formatOnType: true,
+      formatOnPaste: true,
+      autoClosingBrackets: 'always',
+      autoClosingQuotes: 'always',
+      autoSurround: 'quotes',
     }),
     [],
   )
+
+  const handleEditorWillMount = (monacoInstance: typeof import('monaco-editor')) => {
+    monacoInstance.editor.defineTheme(EDITOR_THEME, {
+      base: 'vs-dark',
+      inherit: true,
+      rules: [
+        { token: 'comment', foreground: '94a3b8', fontStyle: 'italic' },
+        { token: 'keyword', foreground: 'c792ea', fontStyle: 'bold' },
+        { token: 'number', foreground: 'f59e0b' },
+        { token: 'string', foreground: 'a7f3d0' },
+        { token: 'delimiter', foreground: '7dd3fc' },
+        { token: 'type.identifier', foreground: '93c5fd' },
+        { token: 'identifier', foreground: 'e2e8f0' },
+        { token: 'function', foreground: '38bdf8' },
+        { token: 'variable', foreground: 'facc15' },
+      ],
+      colors: {
+        'editor.background': '#111315',
+        'editor.foreground': '#e2e8f0',
+        'editorLineNumber.foreground': '#475569',
+        'editorLineNumber.activeForeground': '#cbd5f5',
+        'editor.selectionBackground': '#334155',
+        'editor.inactiveSelectionBackground': '#1f2937',
+        'editor.lineHighlightBackground': '#1f2937',
+        'editorCursor.foreground': '#f8fafc',
+        'editorWhitespace.foreground': '#334155',
+        'editorIndentGuide.background': '#1f2937',
+        'editorIndentGuide.activeBackground': '#475569',
+      },
+    })
+  }
+
+  const handleEditorDidMount = (
+    editor: import('monaco-editor').editor.IStandaloneCodeEditor,
+  ) => {
+    const model = editor.getModel()
+    if (model) {
+      model.updateOptions({ tabSize: 4, insertSpaces: true, trimAutoWhitespace: true })
+    }
+  }
 
   const handleEditorChange = (value: string) => {
     hasUserEditedRef.current = true
@@ -327,10 +394,12 @@ function App() {
               width="100%"
               height="100%"
               language={editorLanguage}
-              theme="vs-dark"
+              theme={EDITOR_THEME}
               value={code}
               options={editorOptions}
               onChange={handleEditorChange}
+              editorWillMount={handleEditorWillMount}
+              editorDidMount={handleEditorDidMount}
             />
           </div>
         </section>

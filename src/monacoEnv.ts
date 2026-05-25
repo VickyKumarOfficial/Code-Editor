@@ -1,3 +1,8 @@
+import 'monaco-editor/esm/vs/basic-languages/monaco.contribution'
+import 'monaco-editor/esm/vs/language/css/monaco.contribution'
+import 'monaco-editor/esm/vs/language/html/monaco.contribution'
+import 'monaco-editor/esm/vs/language/json/monaco.contribution'
+import 'monaco-editor/esm/vs/language/typescript/monaco.contribution'
 import EditorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker'
 import CssWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker'
 import HtmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker'
